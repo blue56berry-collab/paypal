@@ -1,0 +1,64 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Send / Receive - FarPay</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <style>
+    body{font-family:Inter,system-ui;margin:0;background:linear-gradient(180deg,#071426,#07102b);color:#eaf2ff}
+    .wrap{max-width:900px;margin:30px auto;padding:18px}
+    .card{background:rgba(255,255,255,0.03);padding:18px;border-radius:12px;margin-bottom:18px}
+    input,textarea{width:100%;padding:10px;border-radius:10px;border:1px solid rgba(255,255,255,0.06);background:transparent;color:inherit}
+    .btn{background:#7c3aed;padding:10px;border-radius:10px;border:0;color:white;cursor:pointer;margin-top:10px}
+    .top{display:flex;justify-content:space-between;align-items:center}
+    @media(max-width:700px){.top{flex-direction:column;gap:12px}}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="top">
+      <div style="font-weight:700">Send / Receive money</div>
+      <div>
+        <button class="btn" onclick="go('dashboard.html')">Back to dashboard</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>Send money</h3>
+      <label>Recipient (email or username)</label>
+      <input id="to" placeholder="recipient@example.com or username">
+      <label>Amount</label>
+      <input id="amount" placeholder="100">
+      <label>Memo</label>
+      <textarea id="memo" rows="2"></textarea>
+      <button class="btn" onclick="send()">Send</button>
+    </div>
+
+    <div class="card">
+      <h3>Receive money</h3>
+      <p>To receive money, give your email or username to the sender. You can also share your username publicly.</p>
+      <div id="me">Loading...</div>
+    </div>
+  </div>
+
+  <script>
+    function go(p){ window.location = p; }
+    async function fetchMe(){
+      const r = await fetch('/api/me');
+      if(r.status===401){ window.location='login.html'; return; }
+      const d = await r.json();
+      if(d.user) document.getElementById('me').innerHTML = '<div><b>Username:</b> '+d.user.username+'</div><div><b>Email:</b> '+d.user.email+'</div><div style="margin-top:8px"><b>Share this to receive:</b> '+d.user.username+'</div>';
+    }
+    async function send(){
+      const to = document.getElementById('to').value.trim();
+      const amount = document.getElementById('amount').value;
+      const memo = document.getElementById('memo').value;
+      if(!to || !amount){ alert('Complete fields'); return; }
+      const r = await fetch('/api/transfer', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ to, amount, memo })});
+      const d = await r.json();
+      if(d.ok){ alert('Sent! tx: '+d.txid); window.location='dashboard.html'; } else alert(d.error || 'Error');
+    }
+    fetchMe();
+  </script>
+</body>
+</html>
