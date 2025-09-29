@@ -1,0 +1,115 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Dashboard - FarPay</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <style>
+    body{font-family:Inter,system-ui;margin:0;background:linear-gradient(180deg,#061022,#07112b);color:#eaf2ff}
+    header{display:flex;justify-content:space-between;align-items:center;padding:18px 24px}
+    .logo{font-weight:700;background:linear-gradient(90deg,#a78bfa,#7c3aed);padding:10px;border-radius:10px}
+    .container{max-width:1100px;margin:18px auto;padding:12px}
+    .grid{display:grid;grid-template-columns:1fr 360px;gap:18px}
+    .card{background:rgba(255,255,255,0.03);padding:18px;border-radius:12px}
+    .balance{font-size:28px;font-weight:700}
+    .actions{display:flex;gap:10px;margin-top:12px}
+    .btn{background:#7c3aed;padding:8px 12px;border-radius:10px;border:0;color:white;cursor:pointer}
+    table{width:100%;border-collapse:collapse;margin-top:12px}
+    td,th{padding:8px;border-bottom:1px dashed rgba(255,255,255,0.03);font-size:14px}
+    @media(max-width:900px){.grid{grid-template-columns:1fr;}}
+  </style>
+</head>
+<body>
+  <header>
+    <div class="logo">FarPay</div>
+    <div>
+      <button class="btn" onclick="go('send.html')">Send</button>
+      <button class="btn" onclick="go('send.html?receive=true')">Receive</button>
+      <button class="btn" onclick="logout()">Logout</button>
+    </div>
+  </header>
+
+  <div class="container">
+    <div class="grid">
+      <div class="card">
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <div>
+            <div style="font-size:12px;opacity:0.9">Hello, <span id="uname">—</span></div>
+            <div class="balance" id="bal">PKR 0.00</div>
+            <div style="opacity:0.8;font-size:13px">Available balance</div>
+          </div>
+          <div style="text-align:right">
+            <button class="btn" onclick="addFundsPrompt()">Add funds</button>
+            <button class="btn" onclick="setup2FA()">2FA</button>
+          </div>
+        </div>
+
+        <h3 style="margin-top:18px">Recent transactions</h3>
+        <div id="txwrap">Loading…</div>
+      </div>
+
+      <div class="card">
+        <h3>Account</h3>
+        <div id="profile">Loading...</div>
+        <div style="margin-top:12px">
+          <button class="btn" onclick="go('send.html')">Send money</button>
+          <button class="btn" onclick="go('index.html')">Home</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function go(p){ window.location = p; }
+    async function fetchMe(){
+      const r = await fetch('/api/me');
+      if(r.status === 401){ window.location='login.html'; return; }
+      const d = await r.json();
+      if(d.user){
+        document.getElementById('uname').innerText = d.user.username;
+        document.getElementById('bal').innerText = 'PKR ' + Number(d.user.balance || 0).toFixed(2);
+        document.getElementById('profile').innerHTML = '<div><b>Email:</b> '+d.user.email+'</div><div><b>2FA enabled:</b> '+(d.user.twofa_enabled? 'Yes':'No')+'</div>';
+      }
+      loadTx();
+    }
+    async function loadTx(){
+      const r = await fetch('/api/transactions');
+      const d = await r.json();
+      if(d.transactions){
+        if(d.transactions.length===0) { document.getElementById('txwrap').innerHTML = '<div style="opacity:0.8">No transactions yet</div>'; return; }
+        let html = '<table><tr><th>When</th><th>Type</th><th>Amount</th><th>Memo</th></tr>';
+        d.transactions.forEach(tx => {
+          const t = new Date(tx.created_at).toLocaleString();
+          const type = tx.from_user_id === null ? 'Top-up' : (tx.from_user_id === tx.to_user_id ? 'Self' : (tx.from_user_id === null ? 'In' : (tx.to_user_id === null ? 'Out' : (tx.from_user_id === null ? 'In':'Transfer'))));
+          const sign = tx.from_user_id === null ? '+' : (tx.from_user_id === tx.to_user_id ? '' : (tx.from_user_id === null ? '+' : '-'));
+          html += `<tr><td>${t}</td><td>${tx.from_user_id? (tx.from_user_id===tx.to_user_id? 'Note':'Transfer'):'Top-up'}</td><td>${(tx.amount)}</td><td>${tx.memo||''}</td></tr>`;
+        });
+        html += '</table>';
+        document.getElementById('txwrap').innerHTML = html;
+      }
+    }
+    async function addFundsPrompt(){
+      const amt = prompt('Enter amount to add (dummy payment):');
+      if(!amt) return;
+      const r = await fetch('/api/add-funds', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ amount: amt })});
+      const d = await r.json();
+      if(d.ok){ alert('Funds added'); fetchMe(); } else alert(d.error || 'Error');
+    }
+    async function logout(){
+      await fetch('/api/logout', { method:'POST' });
+      window.location='login.html';
+    }
+    async function setup2FA(){
+      const r = await fetch('/api/2fa/setup',{method:'POST'});
+      const d = await r.json();
+      if(d.qr){
+        const confirmed = confirm('A QR for your authenticator will open. Click OK to see it.');
+        if(!confirmed) return;
+        const win = window.open('', '_blank');
+        win.document.write('<img src="'+d.qr+'"><p>Secret: '+d.secret+'</p><p>Scan with Google Authenticator / Authy. Then enter the code to confirm.</p><input id="code"><button onclick="confirm2()">Confirm</button><script>async function confirm2(){ const code=document.getElementById("code").value; const res=await fetch("/api/2fa/confirm",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({secret:'+JSON.stringify(d.secret)+', token:code})}); const j=await res.json(); if(j.ok){ alert("2FA enabled"); window.location="/dashboard.html"; } else alert(j.error||"fail"); }</script>');
+      } else alert('Error fetching QR');
+    }
+    fetchMe();
+  </script>
+</body>
+</html>
