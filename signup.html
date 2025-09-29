@@ -1,0 +1,54 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Signup - FarPay</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <style>
+    /* nice internal CSS */
+    body{font-family:Inter,system-ui;margin:0;background:linear-gradient(180deg,#071024,#07112b);color:#eaf2ff;display:flex;align-items:center;justify-content:center;height:100vh}
+    .box{width:420px;background:rgba(255,255,255,0.03);padding:28px;border-radius:14px;box-shadow:0 10px 40px rgba(2,6,23,0.6)}
+    h2{margin:0 0 8px 0}
+    label{display:block;font-size:13px;margin-top:12px;opacity:0.9}
+    input{width:100%;padding:10px;border-radius:10px;border:1px solid rgba(255,255,255,0.06);background:transparent;color:inherit}
+    .row{display:flex;gap:10px}
+    .btn{margin-top:16px;background:#7c3aed;padding:10px 12px;border-radius:10px;border:0;color:white;width:100%;font-weight:600;cursor:pointer}
+    .link{margin-top:10px;text-align:center;opacity:0.85}
+  </style>
+</head>
+<body>
+  <div class="box">
+    <h2>Create account</h2>
+    <div style="font-size:13px;opacity:0.8">Simple signup to try the wallet</div>
+
+    <label>Email</label>
+    <input id="email" type="email" placeholder="you@example.com">
+
+    <label>Username</label>
+    <input id="username" placeholder="yourusername">
+
+    <label>Password</label>
+    <input id="password" type="password" placeholder="strong password">
+
+    <button class="btn" onclick="signup()">Create account</button>
+
+    <div class="link">Already registered? <a href="login.html" style="color:#c7b3ff">Login</a></div>
+    <div style="font-size:12px;margin-top:8px;opacity:0.8">Note: Passwords are hashed, and pages use JS redirects (no PHP).</div>
+  </div>
+
+  <script>
+    async function signup(){
+      const email = document.getElementById('email').value.trim();
+      const username = document.getElementById('username').value.trim();
+      const password = document.getElementById('password').value;
+      if(!email || !username || !password){ alert('Complete fields'); return; }
+      const res = await fetch('/api/signup', {
+        method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ email, username, password })
+      });
+      const data = await res.json();
+      if(data.ok){ alert('Account created! Redirecting to dashboard.'); window.location='dashboard.html'; }
+      else alert(data.error || 'Error');
+    }
+  </script>
+</body>
+</html>
