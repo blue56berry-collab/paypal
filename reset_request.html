@@ -1,0 +1,34 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Password reset - FarPay</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <style>
+    body{font-family:Inter,system-ui;margin:0;background:linear-gradient(180deg,#071426,#07102b);color:#eaf2ff;display:flex;align-items:center;justify-content:center;height:100vh}
+    .box{width:420px;background:rgba(255,255,255,0.03);padding:28px;border-radius:14px}
+    input{width:100%;padding:10px;border-radius:10px;border:1px solid rgba(255,255,255,0.06);background:transparent;color:inherit}
+    .btn{margin-top:16px;background:#7c3aed;padding:10px 12px;border-radius:10px;border:0;color:white;width:100%;font-weight:600;cursor:pointer}
+  </style>
+</head>
+<body>
+  <div class="box">
+    <h3>Reset password</h3>
+    <div style="opacity:0.85;font-size:13px">Enter your email. We'll send a link (dummy SMTP must be configured).</div>
+    <input id="email" placeholder="you@example.com">
+    <button class="btn" onclick="request()">Send reset link</button>
+    <div style="margin-top:12px"><a href="login.html" style="color:#c7b3ff">Back to login</a></div>
+  </div>
+
+  <script>
+    async function request(){
+      const email = document.getElementById('email').value.trim();
+      if(!email) return alert('Enter email');
+      const r = await fetch('/api/reset-request', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ email })});
+      const d = await r.json();
+      if(d.ok) alert('If user exists, a reset link was sent to the email.');
+      else alert(d.error || 'Error');
+    }
+  </script>
+</body>
+</html>
