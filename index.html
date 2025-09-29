@@ -1,0 +1,80 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>FarPay - Send & Receive</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <style>
+    /* INTERNAL CSS - stylish, modern, responsive */
+    :root {
+      --bg: linear-gradient(135deg,#0f172a 0%, #0b1220 100%);
+      --card: rgba(255,255,255,0.04);
+      --accent: #7c3aed;
+      --glass: rgba(255,255,255,0.03);
+      --text: #e6eef8;
+    }
+    *{box-sizing:border-box;font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial;}
+    html,body{height:100%;margin:0;background:var(--bg);color:var(--text);}
+    .wrap{max-width:1100px;margin:36px auto;padding:24px;}
+    header{display:flex;justify-content:space-between;align-items:center}
+    .brand{display:flex;gap:12px;align-items:center}
+    .logo{width:56px;height:56px;border-radius:12px;background:linear-gradient(90deg,#a78bfa,#7c3aed);display:flex;align-items:center;justify-content:center;font-weight:700;color:white}
+    h1{margin:0;font-size:20px}
+    p.lead{opacity:0.85}
+    .hero{display:flex;gap:20px;align-items:center;margin-top:28px}
+    .card{background:var(--card);padding:20px;border-radius:14px;flex:1;box-shadow:0 6px 30px rgba(0,0,0,0.5);backdrop-filter: blur(6px);}
+    .actions{display:flex;gap:12px}
+    .btn{background:var(--accent);color:white;padding:10px 14px;border-radius:10px;border:0;cursor:pointer;font-weight:600}
+    .ghost{background:transparent;border:1px solid rgba(255,255,255,0.08);padding:10px 14px;border-radius:10px;color:var(--text)}
+    footer{margin-top:26px;text-align:center;opacity:0.8}
+    @media(max-width:760px){.hero{flex-direction:column}}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <div class="brand">
+        <div class="logo">FP</div>
+        <div>
+          <h1>FarPay</h1>
+          <div style="font-size:13px;opacity:0.8">Securely send & receive money — student-friendly demo</div>
+        </div>
+      </div>
+      <div>
+        <button class="ghost" onclick="go('login.html')">Login</button>
+        <button class="btn" onclick="go('signup.html')">Get Started</button>
+      </div>
+    </header>
+
+    <div class="hero">
+      <div class="card">
+        <h2>Welcome to FarPay</h2>
+        <p class="lead">Send and receive digital money, keep a wallet balance, get transaction emails and use 2FA for extra security. This demo is built with real security patterns — but uses dummy payments.</p>
+        <div style="margin-top:18px" class="actions">
+          <button class="btn" onclick="go('signup.html')">Open an account</button>
+          <button class="ghost" onclick="go('dashboard.html')">Try demo dashboard</button>
+        </div>
+      </div>
+
+      <div class="card" style="max-width:360px">
+        <h3 style="margin-top:0">Quick features</h3>
+        <ul>
+          <li>Signup & secure login</li>
+          <li>2FA setup (TOTP)</li>
+          <li>Wallet & add funds (dummy)</li>
+          <li>Send by email/username</li>
+          <li>Transaction history + email alerts</li>
+        </ul>
+      </div>
+    </div>
+
+    <footer>
+      Built for learning — uses internal CSS & JS in each page. Use Node.js to run the server.
+    </footer>
+  </div>
+
+  <script>
+    function go(p){ window.location = p; }
+  </script>
+</body>
+</html>
